@@ -1,0 +1,33 @@
+1) Создайте представление которое будет выводить список сотрудников, отсортированный по возрастанию зарплаты.
+2) Создайте запрос, который объединяет две таблицы - "пользователи" и "посты", и выводит список всех пользователей и количество их постов.
+3) Создайте материализованное представление, которое будет выводить суммарное количество заказов и общую сумму по каждому месяцу за последний год.
+
+Максимально там где нужно добавлять, вставлять, обновлять данные (Используйте Транзакции)!!!!!
+
+try:
+    # Создание представления для списка сотрудников, отсортированного по возрастанию зарплаты
+    cur.execute("""
+        CREATE VIEW employee_salary_sorted AS
+        SELECT * FROM employees
+        ORDER BY salary ASC;
+    """)
+
+    # Создание запроса, объединяющего таблицы "пользователи" и "посты" и выводящего список всех пользователей и количество их постов
+    cur.execute("""
+        CREATE VIEW user_post_count AS
+        SELECT users.username, COUNT(posts.id) AS post_count
+        FROM users
+        LEFT JOIN posts ON users.id = posts.user_id
+        GROUP BY users.id;
+    """)
+
+    # Создание материализованного представления, выводящего суммарное количество заказов и общую сумму по каждому месяцу за последний год
+    cur.executevcb ("""
+        CREATE MATERIALIZED VIEW monthly_order_summary AS
+        SELECT DATE_TRUNC('month', order_date) AS month,
+               COUNT(id) AS total_orders,
+               SUM(order_amount) AS total_amount
+        FROM orders
+        WHERE order_date >= NOW() - INTERVAL '1 year'
+        GROUP BY DATE_TRUNC('month', order_date);
+    """)
